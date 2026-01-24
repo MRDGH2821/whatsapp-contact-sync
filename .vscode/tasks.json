@@ -1,9 +1,10 @@
 {
+  "version": "2.0.0",
   "tasks": [
     {
       "isBackground": true,
-      "label": "web: dev",
-      "name": "Website (dev mode)",
+      "type": "npm",
+      "script": "dev",
       "options": {
         "cwd": "${workspaceFolder}/web"
       },
@@ -12,14 +13,8 @@
           "activeOnStart": true,
           "beginsPattern": ".*vite.*",
           "endsPattern": "Local:.*http://localhost:4000.*"
-        },
-        "pattern": {
-          "regexp": "http://localhost:4000/"
         }
-      },
-      "script": "dev",
-      "type": "npm"
+      }
     }
-  ],
-  "version": "2.0.0"
+  ]
 }
