@@ -1,5 +1,11 @@
 FROM node:24-alpine AS build
 
+ARG WEB_GOOGLE_CLIENT_ID=""
+ARG WEB_GOOGLE_API_KEY=""
+
+ENV WEB_GOOGLE_CLIENT_ID=${WEB_GOOGLE_CLIENT_ID}
+ENV WEB_GOOGLE_API_KEY=${WEB_GOOGLE_API_KEY}
+
 WORKDIR /app/web
 
 COPY ["web/package.json", "web/package-lock.json*", "./"]
@@ -19,6 +25,12 @@ RUN npm run build
 
 ### Build final image
 FROM nginx:alpine
+
+ARG WEB_GOOGLE_CLIENT_ID=""
+ARG WEB_GOOGLE_API_KEY=""
+
+ENV WEB_GOOGLE_CLIENT_ID=${WEB_GOOGLE_CLIENT_ID}
+ENV WEB_GOOGLE_API_KEY=${WEB_GOOGLE_API_KEY}
 
 # Install curl for healthcheck
 RUN apk add --no-cache curl

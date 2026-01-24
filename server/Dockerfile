@@ -1,7 +1,12 @@
 ### Build server files
 FROM node:24-alpine AS server-build
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true"
+ARG SERVER_GOOGLE_CLIENT_ID=""
+ARG SERVER_GOOGLE_CLIENT_SECRET=""
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true" \
+    SERVER_GOOGLE_CLIENT_ID=${SERVER_GOOGLE_CLIENT_ID} \
+    SERVER_GOOGLE_CLIENT_SECRET=${SERVER_GOOGLE_CLIENT_SECRET}
 WORKDIR /app/server
 
 COPY ["server/package.json", "server/package-lock.json*", "./"]
@@ -31,8 +36,13 @@ RUN apk add --no-cache curl && \
 ### Build final image
 FROM node:24-alpine
 
+ARG SERVER_GOOGLE_CLIENT_ID=""
+ARG SERVER_GOOGLE_CLIENT_SECRET=""
+
 ENV RUNNING_IN_DOCKER="true" \
-    NODE_ENV="production"
+    NODE_ENV="production" \
+    SERVER_GOOGLE_CLIENT_ID=${SERVER_GOOGLE_CLIENT_ID} \
+    SERVER_GOOGLE_CLIENT_SECRET=${SERVER_GOOGLE_CLIENT_SECRET}
 WORKDIR /app/server
 
 # Install Chromium and dependencies
