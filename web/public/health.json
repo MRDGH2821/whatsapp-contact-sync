@@ -1,4 +1,4 @@
 {
-    "status": "ok",
-    "service": "web"
+  "service": "web",
+  "status": "ok"
 }

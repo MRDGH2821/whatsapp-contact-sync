@@ -4,7 +4,6 @@ services:
     build:
       context: ..
       dockerfile: server/Dockerfile
-
     container_name: whasync-server
     env_file:
       - .env

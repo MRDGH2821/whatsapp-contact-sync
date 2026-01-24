@@ -31,11 +31,10 @@ services:
   #       - 80:80
   #     restart: unless-stopped
   whasync:
-    container_name: whasync
     build:
       context: .
       dockerfile: Dockerfile
-    restart: unless-stopped
+    container_name: whasync
     env_file:
       - ./server/.env
       - ./web/.env
@@ -43,3 +42,4 @@ services:
     ports:
       - 8080:8080
       - 80:80
+    restart: unless-stopped

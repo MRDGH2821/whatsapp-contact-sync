@@ -56,7 +56,7 @@ router.get("/health", (req: Request, res: Response) => {
     message: "Server is healthy",
     uptime: `${Math.floor(uptime)}s`,
     uptimeSeconds: uptime,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 

@@ -1,4 +1,4 @@
 {
-  "git.followTagsWhenSync": true,
-  "conventionalCommits.scopes": ["cspell", "release", "vscode"]
+  "conventionalCommits.scopes": ["cspell", "release", "vscode"],
+  "git.followTagsWhenSync": true
 }
