@@ -1,45 +1,20 @@
-FROM node:24-alpine AS build
-
-ARG WEB_GOOGLE_CLIENT_ID=""
-ARG WEB_GOOGLE_API_KEY=""
-
-ENV WEB_GOOGLE_CLIENT_ID=${WEB_GOOGLE_CLIENT_ID}
-ENV WEB_GOOGLE_API_KEY=${WEB_GOOGLE_API_KEY}
+FROM node:21 AS build
 
 WORKDIR /app/web
 
 COPY ["web/package.json", "web/package-lock.json*", "./"]
 
-# Cache mount persists npm cache between builds for faster rebuilds (~50-70% faster)
-# npm ci: clean install from package-lock.json
-# --prefer-offline: uses cached packages before downloading
-# --no-audit: skips security audit for speed
-RUN --mount=type=cache,target=/app/.npm \
-  npm ci --prefer-offline --no-audit --cache /app/.npm
+RUN npm install
 
-COPY interfaces ../interfaces
-COPY web .
+COPY ./interfaces /app/interfaces
+COPY ./web .
 
 RUN npm run build
 
 
-### Build final image
+# Build final image
 FROM nginx:alpine
-
-ARG WEB_GOOGLE_CLIENT_ID=""
-ARG WEB_GOOGLE_API_KEY=""
-
-ENV WEB_GOOGLE_CLIENT_ID=${WEB_GOOGLE_CLIENT_ID}
-ENV WEB_GOOGLE_API_KEY=${WEB_GOOGLE_API_KEY}
-
-# Install curl for healthcheck
-RUN apk add --no-cache curl
-
-COPY --from=build /app/web/dist /usr/share/nginx/html
 
 EXPOSE 80
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-  CMD curl -f http://localhost:80/health.json || exit 1
-
-ENTRYPOINT ["/bin/sh", "-c", "/usr/share/nginx/html/vite-envs.sh && nginx -g 'daemon off;'"]
+COPY --from=build /app/web/dist /usr/share/nginx/html
