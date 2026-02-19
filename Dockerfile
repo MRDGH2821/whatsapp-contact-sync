@@ -9,7 +9,7 @@ ENV WEB_GOOGLE_API_KEY=${WEB_GOOGLE_API_KEY}
 
 WORKDIR /app/web
 
-COPY ["web/package.json", "web/package-lock.json*", "./"]
+COPY web/package.json web/package-lock.json* ./
 
 RUN npm ci
 
@@ -30,22 +30,22 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true" \
     SERVER_GOOGLE_CLIENT_SECRET=${SERVER_GOOGLE_CLIENT_SECRET}
 WORKDIR /app/server
 
-COPY ["server/package.json", "server/package-lock.json*", "./"]
+COPY server/package.json server/package-lock.json* ./
 
 RUN npm ci
 
 COPY ./interfaces /app/interfaces
 COPY ./server .
 
-RUN npm run build && \
-    npm prune --production
+RUN npm run build \
+    && npm prune --production
 
 # Prepare node_modules for docker
-RUN apk add --no-cache curl && \
-    curl -sf https://gobinaries.com/tj/node-prune | sh && \
-    mv node_modules/googleapis/build/src/apis/docs ./docs && \
-    node-prune --exclude "**/googleapis/**/docs/*.js" && \
-    mv ./docs node_modules/googleapis/build/src/apis/docs
+RUN apk add --no-cache curl \
+    && curl -sf https://gobinaries.com/tj/node-prune | sh \
+    && mv node_modules/googleapis/build/src/apis/docs ./docs \
+    && node-prune --exclude "**/googleapis/**/docs/*.js" \
+    && mv ./docs node_modules/googleapis/build/src/apis/docs
 
 
 ### Build final image

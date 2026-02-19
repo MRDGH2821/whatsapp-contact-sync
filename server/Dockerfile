@@ -9,28 +9,23 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD="true" \
     SERVER_GOOGLE_CLIENT_SECRET=${SERVER_GOOGLE_CLIENT_SECRET}
 WORKDIR /app/server
 
-COPY ["server/package.json", "server/package-lock.json*", "./"]
+COPY server/package.json server/package-lock.json* ./
 
-# Cache mount persists npm cache between builds for faster rebuilds (~50-70% faster)
-# npm ci: clean install from package-lock.json
-# --prefer-offline: uses cached packages before downloading
-# --no-audit: skips security audit for speed
-RUN --mount=type=cache,target=/app/.npm \
-    npm ci --prefer-offline --no-audit --cache /app/.npm
+RUN npm ci
 
 COPY interfaces ../interfaces
 COPY server .
 
-RUN npm run build && \
-    npm prune --production
+RUN npm run build \
+    && npm prune --production
 
 # Prepare node_modules for docker
 # The mv is a workaround for this - https://github.com/tj/node-prune/issues/63 \
-RUN apk add --no-cache curl && \
-    curl -sf https://gobinaries.com/tj/node-prune | sh && \
-    mv node_modules/googleapis/build/src/apis/docs ./docs && \
-    node-prune --exclude "**/googleapis/**/docs/*.js" && \
-    mv ./docs node_modules/googleapis/build/src/apis/docs
+RUN apk add --no-cache curl \
+    && curl -sf https://gobinaries.com/tj/node-prune | sh \
+    && mv node_modules/googleapis/build/src/apis/docs ./docs \
+    && node-prune --exclude "**/googleapis/**/docs/*.js" \
+    && mv ./docs node_modules/googleapis/build/src/apis/docs
 
 
 ### Build final image
@@ -62,4 +57,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:8080/health || exit 1
 
-CMD [ "node", "build/server/main.js" ]
+CMD ["node", "build/server/main.js"]
