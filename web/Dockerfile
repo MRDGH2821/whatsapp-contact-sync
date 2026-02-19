@@ -10,12 +10,7 @@ WORKDIR /app/web
 
 COPY ["web/package.json", "web/package-lock.json*", "./"]
 
-# Cache mount persists npm cache between builds for faster rebuilds (~50-70% faster)
-# npm ci: clean install from package-lock.json
-# --prefer-offline: uses cached packages before downloading
-# --no-audit: skips security audit for speed
-RUN --mount=type=cache,target=/app/.npm \
-  npm ci --prefer-offline --no-audit --cache /app/.npm
+RUN npm ci
 
 COPY interfaces ../interfaces
 COPY web .
