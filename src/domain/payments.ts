@@ -1,0 +1,82 @@
+import Redis from "ioredis";
+import { enforcePayments } from "./config.js";
+
+const coffeeToken = process.env.COFFEE_TOKEN;
+const expires = 60 * 60 * 24 * 31;
+const emailRegex =
+  /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
+
+let redisClient: Redis;
+if (enforcePayments || process.env.REDIS_URL) {
+  redisClient = new Redis(process.env.REDIS_URL || "redis://localhost:6379");
+}
+const customerCache: Map<string, string> = new Map();
+
+async function queryCoffeePurchases() {
+  const response = await fetch("https://developers.buymeacoffee.com/api/v1/supporters", {
+    headers: { Authorization: `Bearer ${coffeeToken}` },
+  });
+
+  let json: any;
+  try {
+    json = await response.json();
+  } catch (error) {
+    console.error("[SERVER] Failed loading coffee purchases", error);
+    return;
+  }
+
+  const threeDaysAgo = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  for (const purchase of json.data) {
+    if (Date.parse(purchase.support_created_on) > threeDaysAgo) {
+      await recordPurchase(purchase.payer_email);
+    }
+  }
+}
+
+async function recordPurchase(email: string) {
+  if (await queryPurchase(email)) return;
+  try {
+    await redisClient.set(email, "", "EX", expires);
+    customerCache.set(email, "");
+  } catch (error) {
+    console.error("[SERVER] Failed caching purchase", error);
+  }
+}
+
+async function queryPurchase(email: string): Promise<boolean> {
+  if (customerCache.has(email)) return true;
+  try {
+    const whatsappId = await redisClient.get(email);
+    if (whatsappId !== null) {
+      customerCache.set(email, whatsappId);
+      return true;
+    }
+  } catch (error) {
+    console.error("[SERVER] Failed querying purchase", error);
+  }
+  return false;
+}
+
+export async function verifyPurchaseWAId(email: string, whatsappId: string) {
+  if (!enforcePayments) return true;
+  if (customerCache.has(email)) {
+    const cachedWAId = customerCache.get(email);
+    if (cachedWAId !== "") return cachedWAId === whatsappId;
+  }
+
+  const queriedWAId = await redisClient.get(email);
+  if (queriedWAId === "") {
+    const ttl = await redisClient.ttl(email);
+    await redisClient.set(email, whatsappId, "EX", ttl);
+    customerCache.set(email, whatsappId);
+    return true;
+  }
+
+  return queriedWAId === whatsappId;
+}
+
+export async function checkPurchase(email: string): Promise<boolean> {
+  if (!emailRegex.test(email)) return false;
+  await queryCoffeePurchases();
+  return queryPurchase(email);
+}

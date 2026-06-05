@@ -1,4 +1,4 @@
-import { Event, EventType } from "../../../interfaces/api";
+import { Event, EventType } from "@/contracts/api";
 import { HandlerFunction } from "../types";
 import { Deferred } from "../deferred";
 

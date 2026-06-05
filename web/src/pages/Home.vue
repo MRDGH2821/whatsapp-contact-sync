@@ -3,7 +3,7 @@ import { defineComponent } from "vue";
 import { event } from "vue-gtag";
 
 import { isWsReady } from "../services/ws";
-import { SessionStatus } from "../../../interfaces/api";
+import { SessionStatus } from "@/contracts/api";
 
 export default defineComponent({
   data: () => ({

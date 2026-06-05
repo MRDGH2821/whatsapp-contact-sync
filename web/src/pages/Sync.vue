@@ -1,7 +1,7 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { event } from "vue-gtag";
-import { EventType, SyncProgress } from "../../../interfaces/api";
+import { EventType, SyncProgress } from "@/contracts/api";
 import { addHandler, sendEvent } from "../services/ws";
 import { enforcePayments } from "../settings";
 

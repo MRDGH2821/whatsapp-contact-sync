@@ -4,7 +4,7 @@ import QrcodeVue from "qrcode.vue";
 import { event } from "vue-gtag";
 import { isbot } from "isbot";
 
-import { EventType } from "../../../interfaces/api";
+import { EventType } from "@/contracts/api";
 import { addHandler } from "../services/ws";
 
 export default defineComponent({
